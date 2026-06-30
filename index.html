@@ -3,387 +3,464 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aviator Crash Game</title>
+    <title>Aviator Crash Pro - @crashpultopbot</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; }
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap');
+        body { font-family: 'Rajdhani', sans-serif; background-color: #0c0d14; }
+        .font-digital { font-family: 'Orbitron', sans-serif; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
+        @keyframes pulse-red {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.8; }
+        }
+        .plane-glow { animation: pulse-red 2s infinite; }
     </style>
 </head>
-<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col">
+<body class="text-slate-200 min-h-screen flex flex-col unselected">
 
-    <header class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
-        <div class="max-w-md mx-auto px-4 py-3 flex justify-between items-center">
-            <div class="flex items-center gap-2">
-                <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">
-                    <i class="fa-solid fa-plane-departure text-sm"></i>
+    <div id="auth-screen" class="fixed inset-0 bg-[#0c0d14] z-50 flex items-center justify-center p-4">
+        <div class="bg-[#141622] w-full max-w-md rounded-2xl p-6 border border-red-500/20 shadow-2xl shadow-red-500/5 space-y-5">
+            <div class="text-center space-y-2">
+                <div class="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center text-white text-2xl mx-auto shadow-lg shadow-red-600/30">
+                    <i class="fa-solid fa-plane-up"></i>
                 </div>
-                <div>
-                    <h1 class="text-sm font-bold text-slate-700" id="user-name-display">Mironshoh</h1>
-                    <p class="text-xs text-slate-400">ID: 874921</p>
-                </div>
-            </div>
-            <div class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-right">
-                <span class="text-xs text-slate-500 block font-medium">Balans</span>
-                <span class="text-sm font-bold text-blue-600" id="main-balance">0 UZS</span>
-            </div>
-        </div>
-    </header>
-
-    <main class="flex-1 max-w-md w-full mx-auto p-4 pb-24">
-        
-        <div id="tab-game" class="tab-content active space-y-4">
-            <div class="bg-white p-2 rounded-xl border border-slate-200 shadow-sm flex gap-1.5 overflow-x-auto text-xs font-semibold" id="history-badges">
-                <span class="bg-slate-100 text-slate-600 px-2 py-1 rounded">1.24x</span>
-                <span class="bg-blue-50 text-blue-600 px-2 py-1 rounded">5.40x</span>
-                <span class="bg-slate-100 text-slate-600 px-2 py-1 rounded">2.10x</span>
-                <span class="bg-blue-100 text-blue-700 px-2 py-1 rounded">14.20x</span>
-                <span class="bg-slate-100 text-slate-600 px-2 py-1 rounded">1.05x</span>
-            </div>
-
-            <div class="bg-slate-900 rounded-2xl h-52 relative overflow-hidden flex flex-col items-center justify-center border border-slate-800 shadow-inner">
-                <div class="absolute inset-0 opacity-10 bg-[linear-gradient(to_right,#808080_1px,transparent_1px),linear-gradient(to_bottom,#808080_1px,transparent_1px)] bg-[size:24px_24px]"></div>
-                
-                <div class="z-10 text-center">
-                    <span class="text-5xl font-black text-white tracking-tight" id="live-multiplier">1.00x</span>
-                    <p class="text-xs text-slate-400 mt-1 hidden" id="game-status-text">Samolyot uchmoqda...</p>
-                </div>
-
-                <div class="absolute bottom-6 left-6 text-blue-400 text-3xl opacity-0 transition-all duration-100 ease-linear" id="plane-element">
-                    <i class="fa-solid fa-plane"></i>
-                </div>
-            </div>
-
-            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
-                <div class="flex gap-2">
-                    <div class="relative flex-1">
-                        <span class="absolute left-3 top-2.5 text-xs text-slate-400 font-bold">UZS</span>
-                        <input type="number" id="bet-amount" value="10000" step="5000" min="1000" class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-12 pr-3 py-2 text-sm font-bold focus:outline-none focus:border-blue-500">
-                    </div>
-                    <div class="flex gap-1 bg-slate-100 p-1 rounded-xl">
-                        <button onclick="adjustBet(5000)" class="px-2.5 text-xs font-bold text-slate-600 hover:bg-white rounded-lg transition">+5k</button>
-                        <button onclick="adjustBet(20000)" class="px-2.5 text-xs font-bold text-slate-600 hover:bg-white rounded-lg transition">+20k</button>
-                    </div>
-                </div>
-
-                <button id="main-bet-btn" onclick="handleBetAction()" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-blue-500/20 transition-all text-center flex flex-col items-center justify-center">
-                    <span class="text-base" id="btn-primary-text">TIKISH KIRITISH</span>
-                    <span class="text-xs opacity-80 font-normal" id="btn-sub-text">Samolyot uchishidan oldin</span>
-                </button>
-            </div>
-        </div>
-
-        <div id="tab-history" class="tab-content space-y-4">
-            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-                <h3 class="text-sm font-bold text-slate-700 mb-3"><i class="fa-solid fa-clock-rotate-left text-blue-500 mr-2"></i>Tikishlar Tarixi</h3>
-                <div class="divide-y divide-slate-100 max-h-60 overflow-y-auto" id="bets-history-list">
-                    <div class="py-2.5 flex justify-between items-center text-sm">
-                        <div>
-                            <p class="font-semibold text-slate-700">10,000 UZS</p>
-                            <p class="text-xs text-slate-400">Bugun, 14:21</p>
-                        </div>
-                        <span class="text-green-600 font-bold bg-green-50 px-2 py-0.5 rounded text-xs">+15,400 UZS (1.54x)</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-                <h3 class="text-sm font-bold text-slate-700 mb-3"><i class="fa-solid fa-wallet text-blue-500 mr-2"></i>Depozit Jurnali</h3>
-                <div class="divide-y divide-slate-100" id="deposit-history-list">
-                    <div class="py-2.5 flex justify-between items-center text-sm">
-                        <div>
-                            <p class="font-semibold text-slate-700">50,000 UZS</p>
-                            <p class="text-xs text-slate-400">Kecha, 18:05</p>
-                        </div>
-                        <span class="text-blue-600 font-medium bg-blue-50 px-2 py-0.5 rounded text-xs">Muvaffaqiyatli</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div id="tab-account" class="tab-content space-y-4">
-            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
-                <div class="flex items-center gap-3">
-                    <div class="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center text-slate-500 text-xl">
-                        <i class="fa-solid fa-circle-user"></i>
-                    </div>
-                    <div>
-                        <h4 class="font-bold text-slate-800" id="prof-name">Mironshoh</h4>
-                        <p class="text-xs text-slate-400" id="prof-phone">+998 (99) 123-4567</p>
-                    </div>
-                </div>
-                
-                <div class="grid grid-cols-2 gap-2 pt-2">
-                    <button onclick="openDepositModal()" class="bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold py-2.5 px-4 rounded-xl transition flex items-center justify-center gap-1.5">
-                        <i class="fa-solid fa-plus-circle"></i> Balans Qo'shish
-                    </button>
-                    <button onclick="handleWithdrawal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold py-2.5 px-4 rounded-xl transition flex items-center justify-center gap-1.5">
-                        <i class="fa-solid fa-money-bill-transfer"></i> Pul Yechish
-                    </button>
-                </div>
-            </div>
-
-            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <h3 class="text-sm font-bold text-slate-700">Referal Tizimi</h3>
-                        <p class="text-xs text-slate-400 mt-0.5">Har bir taklifga <span class="text-blue-600 font-bold" id="ref-bonus-text">10 000 UZS</span> oling</p>
-                    </div>
-                    <span class="bg-blue-50 text-blue-600 font-bold text-xs px-2 py-1 rounded-lg" id="ref-count">0 ta taklif</span>
-                </div>
-                <div class="flex gap-2">
-                    <input type="text" readonly value="https://aviaplay.uz/ref?id=874921" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-500 flex-1 focus:outline-none">
-                    <button onclick="alert('Havola nusxalandi!')" class="bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold px-4 rounded-xl transition">Nusxalash</button>
-                </div>
-            </div>
-        </div>
-
-    </main>
-
-    <div id="deposit-modal" class="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4 hidden backdrop-blur-sm">
-        <div class="bg-white w-full max-w-sm rounded-2xl p-5 space-y-4 shadow-xl">
-            <div class="flex justify-between items-center border-b border-slate-100 pb-2">
-                <h3 class="font-bold text-slate-800">Balansni To'ldirish</h3>
-                <button onclick="closeDepositModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+                <h2 class="text-2xl font-bold tracking-wider text-white">AVIATOR CRASH</h2>
+                <p class="text-xs text-slate-400">@crashpultopbot tizimiga xush kelibsiz</p>
             </div>
             
-            <div class="bg-blue-50 border border-blue-100 rounded-xl p-3 text-center">
-                <p class="text-xs text-blue-600 font-medium">To'lovni amalga oshirish uchun taymer:</p>
-                <p class="text-2xl font-black text-blue-700 mt-0.5" id="deposit-timer">05:00</p>
-            </div>
-
-            <div class="space-y-2">
-                <label class="text-xs text-slate-400 font-bold uppercase tracking-wider block">HUMO Karta Raqami</label>
-                <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 flex justify-between items-center">
-                    <span class="font-mono font-bold text-slate-700 tracking-wider text-sm" id="card-number">9860 1201 4332 6722</span>
-                    <button onclick="navigator.clipboard.writeText('9860120143326722'); alert('Karta raqami nusxalandi!');" class="text-blue-500 hover:text-blue-600 text-xs font-bold"><i class="fa-regular fa-copy"></i></button>
+            <div class="space-y-4">
+                <div>
+                    <label class="text-xs text-slate-400 font-bold uppercase block mb-1">Ismingiz yoki Admin ID</label>
+                    <input type="text" id="auth-name" placeholder="Ismingizni kiriting..." class="w-full bg-[#1b1e30] border border-slate-750 rounded-xl px-4 py-3 text-sm font-medium text-white focus:outline-none focus:border-red-500 transition">
+                </div>
+                <div>
+                    <label class="text-xs text-slate-400 font-bold uppercase block mb-1">Telefon Raqamingiz</label>
+                    <input type="tel" id="auth-phone" value="+998" class="w-full bg-[#1b1e30] border border-slate-750 rounded-xl px-4 py-3 text-sm font-medium text-white focus:outline-none focus:border-red-500 transition">
+                </div>
+                <div>
+                    <label class="text-xs text-slate-400 font-bold uppercase block mb-1">Taklif kod (Agar bo'lsa)</label>
+                    <input type="text" id="auth-ref" placeholder="Ushbu maydon ixtiyoriy" class="w-full bg-[#1b1e30] border border-slate-750 rounded-xl px-4 py-3 text-sm font-medium text-white focus:outline-none focus:border-red-500 transition">
                 </div>
             </div>
 
-            <div class="text-xs text-slate-400 space-y-1">
-                <p class="flex items-center gap-1.5"><i class="fa-solid fa-circle-info text-blue-500"></i> Kartaga pul o'tkazgach, tizim uni 5 daqiqa ichida avtomatik hisoblaydi.</p>
-            </div>
-
-            <button onclick="closeDepositModal()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 rounded-xl transition text-sm">Yopish</button>
+            <button onclick="processAuth()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-red-600/20 transition text-sm tracking-wider">O'YINNI BOSHLASH</button>
         </div>
     </div>
 
-    <nav class="bg-white border-t border-slate-200 fixed bottom-0 left-0 right-0 z-40 shadow-[0_-2px_10px_rgba(0,0,0,0.03)]">
-        <div class="max-w-md mx-auto px-6 py-2 flex justify-between items-center">
-            <button onclick="switchTab('game')" id="nav-game" class="flex flex-col items-center gap-1 text-blue-500 transition font-medium">
-                <i class="fa-solid fa-gamepad text-lg"></i>
-                <span class="text-[10px]">O'yinlar</span>
-            </button>
-            <button onclick="switchTab('history')" id="nav-history" class="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-600 transition font-medium">
-                <i class="fa-solid fa-chart-line text-lg"></i>
-                <span class="text-[10px]">Tarix</span>
-            </button>
-            <button onclick="switchTab('account')" id="nav-account" class="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-600 transition font-medium">
-                <i class="fa-solid fa-user text-lg"></i>
-                <span class="text-[10px]">Akkaunt</span>
-            </button>
+    <div id="main-app" class="hidden flex-1 flex flex-col pb-24">
+        <header class="bg-[#141622] border-b border-slate-800 sticky top-0 z-40">
+            <div class="max-w-md mx-auto px-4 py-3 flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <div class="w-9 h-9 bg-red-600/10 border border-red-500/30 rounded-full flex items-center justify-center text-red-500 font-bold">
+                        <i class="fa-solid fa-user-astronaut"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-sm font-bold text-white leading-tight" id="user-display-name">Foydalanuvchi</h1>
+                        <p class="text-[11px] text-slate-400" id="user-display-role">Status: O'yinchi</p>
+                    </div>
+                </div>
+                <div class="bg-[#1b1e30] border border-red-500/20 rounded-xl px-4 py-1.5 text-right">
+                    <span class="text-[10px] text-slate-400 block uppercase font-bold tracking-wider">Balans</span>
+                    <span class="text-sm font-black text-red-500 font-digital" id="main-balance">0 UZS</span>
+                </div>
+            </div>
+        </header>
+
+        <main class="flex-1 max-w-md w-full mx-auto p-4 space-y-4">
+            
+            <div id="tab-game" class="tab-content active space-y-4">
+                <div class="bg-[#141622] p-2 rounded-xl border border-slate-800 flex gap-1.5 overflow-x-auto text-[11px] font-bold" id="history-badges">
+                    <span class="bg-slate-800 text-slate-400 px-2 py-0.5 rounded">1.45x</span>
+                    <span class="bg-red-950 text-red-400 border border-red-900 px-2 py-0.5 rounded">8.20x</span>
+                    <span class="bg-slate-800 text-slate-400 px-2 py-0.5 rounded">2.10x</span>
+                    <span class="bg-red-950 text-red-400 border border-red-900 px-2 py-0.5 rounded">18.40x</span>
+                </div>
+
+                <div class="bg-[#090a0f] rounded-2xl h-56 relative overflow-hidden flex flex-col items-center justify-center border border-slate-800 shadow-inner">
+                    <div class="absolute inset-0 opacity-20 bg-[linear-gradient(to_right,#ef4444_1px,transparent_1px),linear-gradient(to_bottom,#ef4444_1px,transparent_1px)] bg-[size:30px_30px]"></div>
+                    
+                    <div class="z-10 text-center">
+                        <span class="text-5xl font-black text-white tracking-tight font-digital" id="live-multiplier">1.00x</span>
+                        <p class="text-xs text-red-500/80 uppercase font-bold tracking-widest mt-1 hidden" id="game-status-text">Samolyot uchmoqda...</p>
+                    </div>
+
+                    <div class="absolute bottom-6 left-6 text-red-500 text-4xl opacity-0 transition-all duration-700 ease-linear plane-glow" id="plane-element">
+                        <i class="fa-solid fa-plane-up"></i>
+                    </div>
+                </div>
+
+                <div class="bg-[#141622] p-4 rounded-2xl border border-slate-800 space-y-3">
+                    <div class="flex gap-2">
+                        <div class="relative flex-1">
+                            <span class="absolute left-3 top-2.5 text-xs text-slate-500 font-bold font-digital">UZS</span>
+                            <input type="number" id="bet-amount" value="10000" step="5000" class="w-full bg-[#1b1e30] border border-slate-700 rounded-xl pl-12 pr-3 py-2 text-sm font-bold text-white font-digital focus:outline-none">
+                        </div>
+                        <div class="flex gap-1 bg-[#1b1e30] p-1 rounded-xl border border-slate-750">
+                            <button onclick="adjustBet(5000)" class="px-2 text-xs font-bold text-slate-300 hover:bg-red-600 rounded-lg transition">+5k</button>
+                            <button onclick="adjustBet(20000)" class="px-2 text-xs font-bold text-slate-300 hover:bg-red-600 rounded-lg transition">+20k</button>
+                        </div>
+                    </div>
+
+                    <button id="main-bet-btn" onclick="handleBetAction()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-red-600/20 transition-all text-center flex flex-col items-center justify-center">
+                        <span class="text-base tracking-wider" id="btn-primary-text">TIKISH KIRITISH</span>
+                        <span class="text-[11px] text-red-200 font-normal" id="btn-sub-text">Parvoz startidan oldin</span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="tab-history" class="tab-content space-y-4">
+                <div class="bg-[#141622] p-4 rounded-2xl border border-slate-800">
+                    <h3 class="text-sm font-bold text-white mb-3 flex items-center gap-2"><i class="fa-solid fa-history text-red-500"></i> O'yinlar Tarixi</h3>
+                    <div class="divide-y divide-slate-800 max-h-64 overflow-y-auto" id="bets-history-list">
+                        <p class="text-xs text-slate-500 py-4 text-center">Hozircha ma'lumotlar mavjud emas</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-account" class="tab-content space-y-4">
+                <div class="bg-[#141622] p-4 rounded-2xl border border-slate-800 space-y-4">
+                    <div class="flex justify-between items-center bg-[#1b1e30] p-3 rounded-xl border border-slate-750">
+                        <div>
+                            <p class="text-xs text-slate-400">Mening Profilim</p>
+                            <p class="font-bold text-white text-sm mt-0.5" id="profile-name-show">-</p>
+                        </div>
+                        <span class="text-xs bg-red-600/10 border border-red-500/20 text-red-500 px-2.5 py-1 rounded-lg font-bold">ID: 874921</span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <button onclick="openDepositModal()" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-3 px-4 rounded-xl transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-wallet"></i> Pul Qo'shish
+                        </button>
+                        <button onclick="handleWithdrawal()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold py-3 px-4 rounded-xl transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-reply"></i> Pul Yechish
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-[#141622] p-4 rounded-2xl border border-slate-800 space-y-3">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h3 class="text-sm font-bold text-white">Hamkorlik (Referal)</h3>
+                            <p class="text-xs text-slate-400 mt-0.5">Har bir taklif uchun: <span class="text-red-500 font-bold" id="ref-bonus-value-display">5,000 UZS</span></p>
+                        </div>
+                        <span class="bg-red-600/10 border border-red-500/20 text-red-500 font-bold text-xs px-2.5 py-1 rounded-lg" id="ref-count-badge">0 ta taklif</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <input type="text" readonly value="https://t.me/crashpultopbot?start=ref874921" class="bg-[#1b1e30] border border-slate-700 rounded-xl px-3 py-2 text-xs font-medium text-slate-400 flex-1 focus:outline-none">
+                        <button onclick="navigator.clipboard.writeText('https://t.me/crashpultopbot?start=ref874921'); alert('Taklif havolasi nusxalandi!');" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-4 rounded-xl transition">Nusxa</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-admin" class="tab-content space-y-4">
+                <div class="bg-[#141622] p-4 rounded-2xl border border-red-500/40 space-y-4 shadow-xl shadow-red-600/5">
+                    <h3 class="text-sm font-bold text-red-500 flex items-center gap-2 uppercase tracking-wider"><i class="fa-solid fa-user-shield"></i> Tizim Admin Paneli</h3>
+                    
+                    <div class="space-y-2 border-t border-slate-800 pt-3">
+                        <label class="text-xs text-slate-400 font-bold block">Foydalanuvchi Balansini Sozlash</label>
+                        <div class="flex gap-2">
+                            <input type="number" id="admin-balance-input" placeholder="Summa kiriting" class="bg-[#1b1e30] border border-slate-700 rounded-xl px-3 py-2 text-xs text-white flex-1 focus:outline-none">
+                            <button onclick="adminModifyBalance(true)" class="bg-green-600 hover:bg-green-700 text-white text-xs font-bold px-3 rounded-xl">+</button>
+                            <button onclick="adminModifyBalance(false)" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-3 rounded-xl">-</button>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2 border-t border-slate-800 pt-3">
+                        <label class="text-xs text-slate-400 font-bold block">Referal Narxini O'zgartirish (UZS)</label>
+                        <div class="flex gap-2">
+                            <input type="number" id="admin-ref-input" value="5000" class="bg-[#1b1e30] border border-slate-700 rounded-xl px-3 py-2 text-xs text-white flex-1 focus:outline-none">
+                            <button onclick="adminUpdateRefPrice()" class="bg-red-600 text-white text-xs font-bold px-4 rounded-xl">Yangilash</button>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2 border-t border-slate-800 pt-3">
+                        <label class="text-xs text-slate-400 font-bold block">RTP / Koeffitsiyent Rejimi (Algoritm)</label>
+                        <div class="grid grid-cols-3 gap-1.5 text-center">
+                            <button onclick="setAdminMode('low')" id="mode-low" class="bg-red-950 text-red-400 border border-red-900 text-[11px] font-bold py-2 rounded-xl">DOIMIY YUTQAZISH</button>
+                            <button onclick="setAdminMode('normal')" id="mode-normal" class="bg-slate-800 text-slate-300 text-[11px] font-bold py-2 rounded-xl border border-transparent">STANDART</button>
+                            <button onclick="setAdminMode('high')" id="mode-high" class="bg-green-950 text-green-400 border border-green-900 text-[11px] font-bold py-2 rounded-xl">YUQORI KOEF (7x-20x)</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <nav class="bg-[#141622] border-t border-slate-800 fixed bottom-0 left-0 right-0 z-40">
+            <div class="max-w-md mx-auto px-4 py-2 flex justify-between items-center text-slate-400">
+                <button onclick="switchTab('game')" id="nav-game" class="flex flex-col items-center gap-1 text-red-500 font-bold flex-1">
+                    <i class="fa-solid fa-gamepad text-lg"></i><span class="text-[10px]">O'yin</span>
+                </button>
+                <button onclick="switchTab('history')" id="nav-history" class="flex flex-col items-center gap-1 font-bold flex-1">
+                    <i class="fa-solid fa-list text-lg"></i><span class="text-[10px]">Tarix</span>
+                </button>
+                <button onclick="switchTab('account')" id="nav-account" class="flex flex-col items-center gap-1 font-bold flex-1">
+                    <i class="fa-solid fa-user text-lg"></i><span class="text-[10px]">Akkaunt</span>
+                </button>
+                <button onclick="switchTab('admin')" id="nav-admin" class="flex-col items-center gap-1 font-bold flex-1 hidden text-amber-500">
+                    <i class="fa-solid fa-user-shield text-lg"></i><span class="text-[10px]">Admin</span>
+                </button>
+            </div>
+        </nav>
+    </div>
+
+    <div id="deposit-modal" class="fixed inset-0 bg-[#090a0f]/80 z-50 flex items-center justify-center p-4 hidden backdrop-blur-sm">
+        <div class="bg-[#141622] w-full max-w-sm rounded-2xl p-5 space-y-4 border border-slate-800">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                <h3 class="font-bold text-white text-sm uppercase tracking-wider">Hisob To'ldirish</h3>
+                <button onclick="closeDepositModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-2 bg-[#1b1e30] p-1 rounded-xl border border-slate-750">
+                <button onclick="toggleDepMethod('auto')" id="dep-btn-auto" class="text-xs font-bold py-2 rounded-lg bg-red-600 text-white">AVTOMATIK</button>
+                <button onclick="toggleDepMethod('admin')" id="dep-btn-admin" class="text-xs font-bold py-2 rounded-lg text-slate-400">ADMIN BILAN</button>
+            </div>
+
+            <div id="dep-method-auto" class="space-y-4">
+                <div class="bg-red-600/10 border border-red-500/20 rounded-xl p-3 text-center">
+                    <p class="text-[11px] text-red-400 font-bold uppercase tracking-wider">To'lov Kutish Taymeri</p>
+                    <p class="text-2xl font-black text-red-500 font-digital mt-0.5" id="deposit-timer">05:00</p>
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">HUMO Karta Raqami</label>
+                    <div class="bg-[#1b1e30] border border-slate-700 rounded-xl p-3 flex justify-between items-center">
+                        <span class="font-mono font-bold text-white tracking-wider text-xs">9860 1201 4332 6722</span>
+                        <button onclick="navigator.clipboard.writeText('9860120143326722'); alert('Karta raqami nusxalandi!');" class="text-red-500 hover:text-red-400"><i class="fa-regular fa-copy"></i></button>
+                    </div>
+                </div>
+                <p class="text-[11px] text-slate-400 leading-relaxed"><i class="fa-solid fa-circle-info text-red-500 mr-1"></i> Kartaga mablag' yuborganingizdan so'ng, SMS Gateway tizimi tushumni avtomat aniqlaydi va balansga qo'shadi.</p>
+            </div>
+
+            <div id="dep-method-admin" class="space-y-4 hidden text-center py-2">
+                <p class="text-xs text-slate-300">To'lovni amalga oshirish yoki cheklarni tasdiqlash uchun rasmiy botimiz adminiga yozing.</p>
+                <a href="https://t.me/crashpultopbot" target="_blank" class="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-3 px-4 rounded-xl transition flex items-center justify-center gap-2">
+                    <i class="fa-brands fa-telegram text-base"></i> ADMIN GA YOZISH (@crashpultopbot)
+                </a>
+            </div>
+
+            <button onclick="closeDepositModal()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 rounded-xl transition text-xs uppercase tracking-wider">Yopish</button>
         </div>
-    </nav>
+    </div>
 
     <script>
-        // App State
-        let balance = 25000; // Boshlang'ich sinov balansi (UZS)
-        let isPlaying = false;
-        let isBetPlaced = false;
-        let currentMultiplier = 1.00;
-        let gameInterval = null;
-        let currentBetAmount = 10000;
-        let timerInterval = null;
-        
-        // Dynamic Loss Controls & Psychological Hook Configurations
-        let betCount = 0; // Foydalanuvchining o'yinlar soni
-        let crashPoint = 2.50; // Dynamic belgilangan nuqta
+        // Game & User States
+        let userData = { name: '', phone: '', balance: 0, refCount: 0, isAdmin: false };
+        let referralBonusPrice = 5000;
+        let isPlaying = false, isBetPlaced = false;
+        let currentMultiplier = 1.00, crashPoint = 2.00;
+        let gameInterval = null, timerInterval = null;
+        let betCount = 0;
+        let systemAlgMode = 'normal'; // low, normal, high
 
-        // Initialize display
-        updateBalanceDisplay();
+        // Auth Logic (Starts everything from zero)
+        function processAuth() {
+            const nameInput = document.getElementById('auth-name').value.trim();
+            const phoneInput = document.getElementById('auth-phone').value.trim();
+            const refInput = document.getElementById('auth-ref').value.trim();
 
-        function updateBalanceDisplay() {
-            document.getElementById('main-balance').innerText = balance.toLocaleString() + ' UZS';
+            if (!nameInput) {
+                alert("Iltimos, ismingizni kiriting!");
+                return;
+            }
+
+            userData.name = nameInput;
+            userData.phone = phoneInput;
+            userData.balance = 0; // Hamma narsa noldan boshlanadi!
+            userData.refCount = 0;
+
+            // Admin ID Check (8355669630)
+            if (nameInput === "8355669630" || phoneInput.includes("8355669630") || refInput === "8355669630") {
+                userData.isAdmin = true;
+                userData.balance = 1000000; // Admin uchun sinov balansi
+                document.getElementById('user-display-role').innerText = "Status: Tizim Admini";
+                document.getElementById('nav-admin').classList.remove('hidden');
+                document.getElementById('nav-admin').classList.add('flex');
+            } else {
+                document.getElementById('user-display-role').innerText = "Status: O'yinchi";
+            }
+
+            // If a valid referral was provided (Simulated 100% action)
+            if (refInput && refInput !== "8355669630") {
+                alert("Referal kod qabul qilindi! Taklif qiluvchiga " + referralBonusPrice.toLocaleString() + " UZS berildi.");
+            }
+
+            // Sync with UI
+            document.getElementById('user-display-name').innerText = userData.name;
+            document.getElementById('profile-name-show').innerText = userData.name;
+            updateBalanceUI();
+
+            // Screen switch
+            document.getElementById('auth-screen').classList.add('hidden');
+            document.getElementById('main-app').classList.remove('hidden');
         }
 
-        // Tab Switching Logic
+        function updateBalanceUI() {
+            document.getElementById('main-balance').innerText = userData.balance.toLocaleString() + ' UZS';
+        }
+
+        // Tab Navigation
         function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.getElementById('tab-' + tabId).classList.add('active');
 
-            // Update nav indicators
-            const tabs = ['game', 'history', 'account'];
+            const tabs = ['game', 'history', 'account', 'admin'];
             tabs.forEach(t => {
                 const btn = document.getElementById('nav-' + t);
-                if (t === tabId) {
+                if(!btn) return;
+                if(t === tabId) {
+                    btn.classList.add('text-red-500');
                     btn.classList.remove('text-slate-400');
-                    btn.classList.add('text-blue-500');
                 } else {
-                    btn.classList.remove('text-blue-500');
+                    btn.classList.remove('text-red-500');
                     btn.classList.add('text-slate-400');
                 }
             });
         }
 
-        // Bet Amount Modifier Buttons
         function adjustBet(val) {
             if(isPlaying || isBetPlaced) return;
-            currentBetAmount += val;
-            if(currentBetAmount < 1000) currentBetAmount = 1000;
-            document.getElementById('bet-amount').value = currentBetAmount;
+            let current = parseInt(document.getElementById('bet-amount').value) || 0;
+            document.getElementById('bet-amount').value = current + val;
         }
 
-        // Game Simulation Loop
+        // Aviator Game Loop Simulator
         function handleBetAction() {
-            currentBetAmount = parseInt(document.getElementById('bet-amount').value) || 10000;
+            let betAmt = parseInt(document.getElementById('bet-amount').value) || 0;
+            if(betAmt < 1000) { alert("Minimal tikish 1,000 UZS"); return; }
 
             if (!isBetPlaced && !isPlaying) {
-                // Place Bet
-                if (balance < currentBetAmount) {
-                    alert("Mablag' yetarli emas! Iltimos, hisobni to'ldiring.");
+                if (userData.balance < betAmt) {
+                    alert("Balansda yetarli mablag' mavjud emas!");
                     return;
                 }
-                balance -= currentBetAmount;
-                updateBalanceDisplay();
+                userData.balance -= betAmt;
+                updateBalanceUI();
                 isBetPlaced = true;
-                
-                // UI Changes to Awaiting Flight
-                document.getElementById('main-bet-btn').classList.replace('bg-blue-500', 'bg-amber-500');
-                document.getElementById('btn-primary-text').innerText = "PARVOZ KUTILMOQDA...";
-                document.getElementById('btn-sub-text').innerText = "O'yin tez orada boshlanadi";
-                
-                // Trigger auto flight start simulation delay
-                setTimeout(startFlight, 2000);
-            } else if (isPlaying) {
-                // Cashout Action
-                isPlaying = false;
-                let winAmount = Math.floor(currentBetAmount * currentMultiplier);
-                balance += winAmount;
-                updateBalanceDisplay();
-                
-                // Add to History logs
-                addBetToHistory(currentBetAmount, currentMultiplier, winAmount, true);
 
-                alert(`Yutuq! Siz ${winAmount.toLocaleString()} UZS yutib oldingiz! (${currentMultiplier.toFixed(2)}x)`);
-                resetGameUI();
+                document.getElementById('main-bet-btn').className = "w-full bg-amber-600 text-white font-bold py-4 rounded-xl text-center flex flex-col items-center justify-center animate-pulse";
+                document.getElementById('btn-primary-text').innerText = "PARVOZ KUTILMOQDA...";
+                
+                setTimeout(launchPlane, 2000);
+            } else if (isPlaying) {
+                // Cashout
+                isPlaying = false;
+                let winnings = Math.floor(betAmt * currentMultiplier);
+                userData.balance += winnings;
+                updateBalanceUI();
+
+                logGameHistory(betAmt, currentMultiplier, winnings, true);
+                alert(`Muvaffaqiyatli Cashout! Yutdingiz: ${winnings.toLocaleString()} UZS (${currentMultiplier.toFixed(2)}x)`);
+                resetFlightUI();
             }
         }
 
-        function startFlight() {
+        function launchPlane() {
             if(!isBetPlaced) return;
             isBetPlaced = false;
             isPlaying = true;
             currentMultiplier = 1.00;
             betCount++;
 
-            // RTP control logic simulator implementation
-            // 1. New User Psychological Hook (1-3 games: high multipliers 7x - 20x)
-            if (betCount <= 2) {
-                crashPoint = (Math.random() * (20.00 - 7.00) + 7.00);
-            } else { 
-                // 2. Dynamic Loss Algoritm Mode (Cap Max 30x, keep low frequently)
-                let rand = Math.random();
-                if (rand < 0.6) {
-                    crashPoint = (Math.random() * (1.80 - 1.01) + 1.01); // 60% loss chance instantly
+            // Algorithm calculations (Admin controls & RTP rules)
+            if (systemAlgMode === 'low') {
+                crashPoint = (Math.random() * (1.40 - 1.01) + 1.01); // Always low crash
+            } else if (systemAlgMode === 'high') {
+                crashPoint = (Math.random() * (20.00 - 7.00) + 7.00); // High boost mode
+            } else {
+                // Standart Dynamic logic
+                if (betCount <= 2) {
+                    crashPoint = (Math.random() * (15.00 - 6.00) + 6.00); // Initial psychological hook
                 } else {
-                    crashPoint = (Math.random() * (29.99 - 2.00) + 2.00); // 40% chance up to 30x max
+                    let r = Math.random();
+                    crashPoint = r < 0.65 ? (Math.random() * (1.90 - 1.02) + 1.02) : (Math.random() * (29.90 - 2.10) + 2.10);
                 }
             }
 
-            // Change UI Button to Cashout state
-            document.getElementById('main-bet-btn').classList.replace('bg-amber-500', 'bg-blue-600');
-            document.getElementById('btn-primary-text').innerText = "CHIQARIB OLISH (CASH OUT)";
+            document.getElementById('main-bet-btn').className = "w-full bg-red-600 text-white font-bold py-4 rounded-xl text-center flex flex-col items-center justify-center";
+            document.getElementById('btn-primary-text').innerText = "CASH OUT (YUTUQNI OLISH)";
             document.getElementById('game-status-text').classList.remove('hidden');
-            
-            // Plane Visual Animation Start
+
             const plane = document.getElementById('plane-element');
             plane.style.opacity = '1';
 
             gameInterval = setInterval(() => {
                 if (currentMultiplier >= crashPoint) {
-                    // CRASHED!
                     clearInterval(gameInterval);
-                    if (isPlaying) { 
-                        // User didn't cash out in time
-                        addBetToHistory(currentBetAmount, currentMultiplier, 0, false);
-                        document.getElementById('live-multiplier').classList.replace('text-white', 'text-red-500');
+                    if (isPlaying) {
+                        logGameHistory(parseInt(document.getElementById('bet-amount').value), currentMultiplier, 0, false);
                         document.getElementById('live-multiplier').innerText = "CRASHED";
+                        document.getElementById('live-multiplier').className = "text-5xl font-black text-red-600 font-digital";
                         isPlaying = false;
                     }
-                    setTimeout(resetGameUI, 2500);
+                    setTimeout(resetFlightUI, 2000);
                     return;
                 }
 
-                // Smooth exponential growth feel
-                let increment = currentMultiplier * 0.012 + 0.01;
-                currentMultiplier += increment;
+                currentMultiplier += currentMultiplier * 0.015 + 0.01;
                 document.getElementById('live-multiplier').innerText = currentMultiplier.toFixed(2) + 'x';
-                document.getElementById('btn-sub-text').innerText = "Joriy yutuq: " + Math.floor(currentBetAmount * currentMultiplier).toLocaleString() + " UZS";
                 
-                // Move plane graphic slightly up and right
-                let progress = (currentMultiplier / 30) * 100;
-                plane.style.bottom = `${Math.min(6 + progress * 1.2, 75)}%`;
-                plane.style.left = `${Math.min(6 + progress * 2.5, 80)}%`;
+                let bAmt = parseInt(document.getElementById('bet-amount').value) || 0;
+                document.getElementById('btn-sub-text').innerText = "Joriy Qiymat: " + Math.floor(bAmt * currentMultiplier).toLocaleString() + " UZS";
 
-            }, 80);
+                let progress = (currentMultiplier / 30) * 100;
+                plane.style.bottom = `${Math.min(6 + progress * 1.3, 70)}%`;
+                plane.style.left = `${Math.min(6 + progress * 2.4, 75)}%`;
+            }, 90);
         }
 
-        function resetGameUI() {
+        function resetFlightUI() {
             clearInterval(gameInterval);
-            isPlaying = false;
-            isBetPlaced = false;
-            
-            // Reset Badge History UI
-            if (currentMultiplier > 1.01 && document.getElementById('live-multiplier').innerText !== "CRASHED") {
-                const badgeBox = document.getElementById('history-badges');
-                const badge = document.createElement('span');
-                badge.className = currentMultiplier >= 7 ? "bg-blue-100 text-blue-700 px-2 py-1 rounded" : "bg-slate-100 text-slate-600 px-2 py-1 rounded";
-                badge.innerText = currentMultiplier.toFixed(2) + 'x';
-                badgeBox.insertBefore(badge, badgeBox.firstChild);
+            isPlaying = false; isBetPlaced = false;
+
+            // Push to top ribbon
+            if(currentMultiplier > 1.01 && document.getElementById('live-multiplier').innerText !== "CRASHED") {
+                const ribbon = document.getElementById('history-badges');
+                const span = document.createElement('span');
+                span.className = currentMultiplier >= 5 ? "bg-red-950 text-red-400 border border-red-900 px-2 py-0.5 rounded" : "bg-slate-800 text-slate-400 px-2 py-0.5 rounded";
+                span.innerText = currentMultiplier.toFixed(2) + 'x';
+                ribbon.insertBefore(span, ribbon.firstChild);
             }
 
-            // UI Elements defaults
-            document.getElementById('live-multiplier').className = "text-5xl font-black text-white tracking-tight";
+            document.getElementById('live-multiplier').className = "text-5xl font-black text-white tracking-tight font-digital";
             document.getElementById('live-multiplier').innerText = "1.00x";
             document.getElementById('game-status-text').classList.add('hidden');
-            
-            const btn = document.getElementById('main-bet-btn');
-            btn.className = "w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-blue-500/20 transition-all text-center flex flex-col items-center justify-center";
+            document.getElementById('main-bet-btn').className = "w-full bg-red-600 hover:bg-red-700 text-white font-bold py-4 rounded-xl text-center flex flex-col items-center justify-center";
             document.getElementById('btn-primary-text').innerText = "TIKISH KIRITISH";
-            document.getElementById('btn-sub-text').innerText = "Samolyot uchishidan oldin";
-            
+            document.getElementById('btn-sub-text').innerText = "Parvoz startidan oldin";
+
             const plane = document.getElementById('plane-element');
-            plane.style.opacity = '0';
-            plane.style.bottom = '1.5rem';
-            plane.style.left = '1.5rem';
+            plane.style.opacity = '0'; plane.style.bottom = '1.5rem'; plane.style.left = '1.5rem';
         }
 
-        function addBetToHistory(bet, mult, win, isWin) {
-            const list = document.getElementById('bets-history-list');
-            const row = document.createElement('div');
-            row.className = "py-2.5 flex justify-between items-center text-sm";
+        function logGameHistory(bet, mult, win, isWin) {
+            const container = document.getElementById('bets-history-list');
+            if(container.innerHTML.includes("Hozircha ma'lumotlar")) container.innerHTML = '';
             
-            let statusBadge = isWin 
-                ? `<span class="text-green-600 font-bold bg-green-50 px-2 py-0.5 rounded text-xs">+${win.toLocaleString()} UZS (${mult.toFixed(2)}x)</span>`
-                : `<span class="text-red-500 font-medium bg-red-50 px-2 py-0.5 rounded text-xs">Yutqazildi (${mult.toFixed(2)}x)</span>`;
-
-            row.innerHTML = `
+            const div = document.createElement('div');
+            div.className = "py-3 flex justify-between items-center text-xs border-b border-slate-800";
+            div.innerHTML = `
                 <div>
-                    <p class="font-semibold text-slate-700">${bet.toLocaleString()} UZS</p>
-                    <p class="text-xs text-slate-400">Hozirgina</p>
+                    <p class="font-bold text-white">${bet.toLocaleString()} UZS</p>
+                    <p class="text-[10px] text-slate-500">Hozirgina</p>
                 </div>
-                ${statusBadge}
+                ${isWin ? `<span class="text-green-500 font-bold bg-green-500/10 px-2 py-1 rounded border border-green-500/20">+${win.toLocaleString()} UZS (${mult.toFixed(2)}x)</span>` : `<span class="text-red-500 font-bold bg-red-500/10 px-2 py-1 rounded border border-red-500/20">Yutqazildi (${mult.toFixed(2)}x)</span>`}
             `;
-            list.insertBefore(row, list.firstChild);
+            container.insertBefore(div, container.firstChild);
         }
 
-        // Financial & Modals Logic
+        // Financial Window Modals
         function openDepositModal() {
             document.getElementById('deposit-modal').classList.remove('hidden');
-            startDepositTimer(300); // 5 daqiqa (300 soniya)
+            let time = 300;
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                let min = Math.floor(time / 60), sec = time % 60;
+                document.getElementById('deposit-timer').innerText = `${min < 10 ? '0'+min : min}:${sec < 10 ? '0'+sec : sec}`;
+                if(--time < 0) clearInterval(timerInterval);
+            }, 1000);
         }
 
         function closeDepositModal() {
@@ -391,36 +468,53 @@
             clearInterval(timerInterval);
         }
 
-        function startDepositTimer(duration) {
-            clearInterval(timerInterval);
-            let timer = duration, minutes, seconds;
-            const display = document.getElementById('deposit-timer');
-            
-            timerInterval = setInterval(() => {
-                minutes = parseInt(timer / 60, 10);
-                seconds = parseInt(timer % 60, 10);
-
-                minutes = minutes < 10 ? "0" + minutes : minutes;
-                seconds = seconds < 10 ? "0" + seconds : seconds;
-
-                display.innerText = minutes + ":" + seconds;
-
-                if (--timer < 0) {
-                    clearInterval(timerInterval);
-                    display.innerText = "Muddati tugadi";
-                }
-            }, 1000);
+        function toggleDepMethod(method) {
+            if(method === 'auto') {
+                document.getElementById('dep-method-auto').classList.remove('hidden');
+                document.getElementById('dep-method-admin').classList.add('hidden');
+                document.getElementById('dep-btn-auto').className = "text-xs font-bold py-2 rounded-lg bg-red-600 text-white";
+                document.getElementById('dep-btn-admin').className = "text-xs font-bold py-2 rounded-lg text-slate-400";
+            } else {
+                document.getElementById('dep-method-auto').classList.add('hidden');
+                document.getElementById('dep-method-admin').classList.remove('hidden');
+                document.getElementById('dep-btn-auto').className = "text-xs font-bold py-2 rounded-lg text-slate-400";
+                document.getElementById('dep-btn-admin').className = "text-xs font-bold py-2 rounded-lg bg-red-600 text-white";
+            }
         }
 
         function handleWithdrawal() {
-            const minWithdraw = 160000;
-            if (balance < minWithdraw) {
-                alert(`Minimal yechish summasi: ${minWithdraw.toLocaleString()} UZS. Sizning balansingiz yetarli emas!`);
+            if(userData.balance < 160000) {
+                alert("Minimal yechish summasi 160,000 UZS. Balansingiz yetarli emas.");
             } else {
-                alert("Yechish arizasi tasdiqlandi. Admin profiliga yo'naltirilmoqdasiz...");
-                // Admin Telegram profiliga yo'naltirish
-                window.location.href = "https://t.me/your_admin_username"; 
+                alert("Yechish so'rovi yuborildi. Tekshirish uchun bot adminiga yo'naltirilmoqdasiz.");
+                window.location.href = "https://t.me/crashpultopbot";
             }
+        }
+
+        // Secret Admin Panel Commands
+        function adminModifyBalance(isAdd) {
+            let val = parseInt(document.getElementById('admin-balance-input').value) || 0;
+            if(isAdd) userData.balance += val;
+            else userData.balance = Math.max(0, userData.balance - val);
+            updateBalanceUI();
+            alert("Foydalanuvchi balansi o'zgartirildi!");
+        }
+
+        function adminUpdateRefPrice() {
+            let val = parseInt(document.getElementById('admin-ref-input').value) || 5000;
+            referralBonusPrice = val;
+            document.getElementById('ref-bonus-value-display').innerText = referralBonusPrice.toLocaleString() + ' UZS';
+            alert("Referal mukofot narxi yangilandi!");
+        }
+
+        function setAdminMode(mode) {
+            systemAlgMode = mode;
+            document.querySelectorAll('#tab-admin button[id^="mode-"]').forEach(btn => {
+                btn.className = "bg-slate-800 text-slate-400 text-[11px] font-bold py-2 rounded-xl border border-transparent";
+            });
+            if(mode === 'low') document.getElementById('mode-low').className = "bg-red-950 text-red-400 border border-red-900 text-[11px] font-bold py-2 rounded-xl";
+            if(mode === 'normal') document.getElementById('mode-normal').className = "bg-slate-700 text-white border border-slate-500 text-[11px] font-bold py-2 rounded-xl";
+            if(mode === 'high') document.getElementById('mode-high').className = "bg-green-950 text-green-400 border border-green-900 text-[11px] font-bold py-2 rounded-xl";
         }
     </script>
 </body>
